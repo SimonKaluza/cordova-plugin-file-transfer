@@ -25,6 +25,7 @@
 #import <AssetsLibrary/ALAssetRepresentation.h>
 #import <AssetsLibrary/ALAssetsLibrary.h>
 #import <CFNetwork/CFNetwork.h>
+#import <MobileCoreServices/MobileCoreServices.h>
 
 #ifndef DLog
 #ifdef DEBUG
@@ -572,8 +573,11 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
             [self.targetFileHandle closeFile];
             self.targetFileHandle = nil;
             DLog(@"File Transfer Download success");
-
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[self.filePlugin makeEntryForURL:self.targetURL]];
+            
+            NSMutableDictionary* dictionaryResult = (NSMutableDictionary*) [self.filePlugin makeEntryForURL:self.targetURL];
+            [dictionaryResult setObject:[self utiForMIMEType: self.mimeType] forKey:@"uti"];
+            
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: dictionaryResult];
         } else {
             downloadResponse = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[command createFileTransferError:CONNECTION_ERR AndSource:source AndTarget:target AndHttpStatus:self.responseCode AndBody:downloadResponse]];
@@ -785,6 +789,13 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
         self.targetFileHandle = nil;
     }
     return self;
+}
+
+- (NSString*) utiForMIMEType:(NSString*) MIMETypeStr {
+    CFStringRef MIMEType = (__bridge CFStringRef) MIMETypeStr;
+    CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, MIMEType, NULL);
+    CFRelease(MIMEType);
+    return (__bridge_transfer NSString *) UTI;
 }
 
 @end
