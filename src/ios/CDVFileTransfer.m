@@ -794,7 +794,6 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 - (NSString*) utiForMIMEType:(NSString*) MIMETypeStr {
     CFStringRef MIMEType = (__bridge CFStringRef) MIMETypeStr;
     CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, MIMEType, NULL);
-    CFRelease(MIMEType);
     return (__bridge_transfer NSString *) UTI;
 }
 
